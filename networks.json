@@ -1,0 +1,8 @@
+{
+  "neox-testnet": {
+    "NeoQuickPoll": {
+      "address": "0xA3A586e410164140D9e71C8B0eD460a95A239513",
+      "startBlock": 529765
+    }
+  }
+}

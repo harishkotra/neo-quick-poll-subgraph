@@ -1,0 +1,29 @@
+specVersion: 1.0.0
+indexerHints:
+  prune: auto
+schema:
+  file: ./schema.graphql
+dataSources:
+  - kind: ethereum
+    name: NeoQuickPoll
+    network: neox-testnet
+    source:
+      address: "0xA3A586e410164140D9e71C8B0eD460a95A239513"
+      abi: NeoQuickPoll
+      startBlock: 529765
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      entities:
+        - PollCreated
+        - VoteCast
+      abis:
+        - name: NeoQuickPoll
+          file: ./abis/NeoQuickPoll.json
+      eventHandlers:
+        - event: PollCreated(string,string)
+          handler: handlePollCreated
+        - event: VoteCast(string,string,address)
+          handler: handleVoteCast
+      file: ./src/neo-quick-poll.ts
