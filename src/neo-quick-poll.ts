@@ -1,34 +1,40 @@
+import { BigInt, Bytes } from "@graphprotocol/graph-ts"
 import {
-  PollCreated as PollCreatedEvent,
-  VoteCast as VoteCastEvent
+  NeoQuickPoll,
+  PollCreated,
+  VoteCast
 } from "../generated/NeoQuickPoll/NeoQuickPoll"
-import { PollCreated, VoteCast } from "../generated/schema"
+import { Poll, Vote } from "../generated/schema"
 
-export function handlePollCreated(event: PollCreatedEvent): void {
-  let entity = new PollCreated(
-    event.transaction.hash.concatI32(event.logIndex.toI32())
-  )
-  entity.pollId = event.params.pollId
-  entity.question = event.params.question
+export function handlePollCreated(event: PollCreated): void {
+  let poll = new Poll(event.params.pollId)
+  let contract = NeoQuickPoll.bind(event.address)
+  let pollData = contract.getPollResults(event.params.pollId)
 
-  entity.blockNumber = event.block.number
-  entity.blockTimestamp = event.block.timestamp
-  entity.transactionHash = event.transaction.hash
+  poll.question = pollData.value0
+  poll.options = pollData.value1
+  poll.votes = new Array<BigInt>(pollData.value1.length).fill(BigInt.fromI32(0))
+  poll.creator = event.transaction.from
+  poll.createdAt = event.block.timestamp
 
-  entity.save()
+  poll.save()
 }
 
-export function handleVoteCast(event: VoteCastEvent): void {
-  let entity = new VoteCast(
-    event.transaction.hash.concatI32(event.logIndex.toI32())
-  )
-  entity.pollId = event.params.pollId
-  entity.option = event.params.option
-  entity.voter = event.params.voter
+export function handleVoteCast(event: VoteCast): void {
+  let pollId = event.params.pollId
+  let poll = Poll.load(pollId)
+  if (poll) {
+    let contract = NeoQuickPoll.bind(event.address)
+    let pollData = contract.getPollResults(pollId)
+    poll.votes = pollData.value2
+    poll.save()
+  }
 
-  entity.blockNumber = event.block.number
-  entity.blockTimestamp = event.block.timestamp
-  entity.transactionHash = event.transaction.hash
-
-  entity.save()
+  let voteId = event.transaction.hash.toHexString() + "-" + event.logIndex.toString()
+  let vote = new Vote(voteId)
+  vote.poll = pollId
+  vote.voter = event.params.voter
+  vote.option = event.params.option
+  vote.timestamp = event.block.timestamp
+  vote.save()
 }

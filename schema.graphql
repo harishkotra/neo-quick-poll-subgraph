@@ -1,18 +1,16 @@
-type PollCreated @entity(immutable: true) {
-  id: Bytes!
-  pollId: String! # string
-  question: String! # string
-  blockNumber: BigInt!
-  blockTimestamp: BigInt!
-  transactionHash: Bytes!
+type Poll @entity {
+  id: ID!
+  question: String!
+  options: [String!]!
+  votes: [BigInt!]!
+  creator: Bytes!
+  createdAt: BigInt!
 }
 
-type VoteCast @entity(immutable: true) {
-  id: Bytes!
-  pollId: String! # string
-  option: String! # string
-  voter: Bytes! # address
-  blockNumber: BigInt!
-  blockTimestamp: BigInt!
-  transactionHash: Bytes!
+type Vote @entity {
+  id: ID!
+  poll: Poll!
+  voter: Bytes!
+  option: String!
+  timestamp: BigInt!
 }
